@@ -69,7 +69,7 @@ This parameter has been added to enable script automation using cron jobs.
 Full script details can be found in script.sh, and parameter-specific outputs are stored in files named analysis_<parameter>.csv.
 
 ## Automation with Cron
-Example of adding a daily analysis task:
+Example of adding to crontab for daily analysis:
 ```
 0 0 * * * /bin/bash /analysis_script/script.sh /analysis_script/nginx.log all
 ```
