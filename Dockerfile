@@ -13,9 +13,8 @@ WORKDIR /app
 COPY script.sh /app/script.sh
 RUN chmod +x /app/script.sh
 
-# Налаштування Git
-RUN git config --global user.name "Log Analyzer" && \
-    git config --global user.email "analyzer@server.local"
+RUN git config --global user.name "Script" && \
+    git config --global user.email "ivanpavlyk76@gmail.com"
 
 ENV OUTPUT_DIR=/app/output
 
