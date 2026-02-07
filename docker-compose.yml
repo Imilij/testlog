@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  analyzer:
+    build: .
+    container_name: nginx-log-analyzer
+    restart: unless-stopped
+    volumes:
+      - /home/logs:/app/logs:ro
+      - /analysis_script:/app/output:rw
+    environment:
+      - TZ=Europe/Kiev
+      - OUTPUT_DIR=/app/output
+      - GIT_TOKEN=${GIT_TOKEN}
+    working_dir: /app/output
+    command: ["/bin/sh", "-c", "tail -f /dev/null"]
