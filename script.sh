@@ -33,8 +33,8 @@ run_analysis() {
 }
 
 git_push() {
-    if [ -n "$GIT_TOKEN" ]; then
-        git remote set-url origin https://${GIT_TOKEN}@github.com/Imilij/testlog.git 2>/dev/null
+    if [ -n "$GIT_TOKEN" ] && [ -n "$GIT_REPO" ]; then
+        git remote set-url origin https://${GIT_TOKEN}@${GIT_REPO} 2>/dev/null
         git add analysis_*.csv script.sh 2>/dev/null
         git commit -m "$1" 2>/dev/null
         git push origin main 2>/dev/null
