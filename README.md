@@ -1,100 +1,95 @@
-# Скрипт для аналізу журналу логів Nginx ingress та конвертування їх у csv файл.
+# Script for Analyzing Nginx Ingress Log Files and Converting Them to CSV Format
+## How to Run the Script:
+General command to execute the script:
+```
+/bin/bash /analysis_script/script.sh /path/to/nginx.log parameter
+```
+After the script runs, its results will be stored in a .csv file generated in the script’s directory and automatically pushed to Git.
+Each parameter execution creates a separate output file that includes the parameter name in its filename.
 
-## Методи запуску скрипта:
-Загальна команда для запуску скрипта:
-```
-/bin/bash /analysis_script/script.sh /шлях/до/файлу/nginx.log параметр
-```
-Після запуску скрипта, його результати будуть записані у файл із розширенням .csv, який буде формуватись у директорії, де знаходиться скрипт та автоматично пушитись на Git.
-Для кожного із параметрів запуску буде формуватись окремий файл, що буде містити у своїй назві відповідний параметр.
-Приклад файлу виводу:
+Example output file:
 ```
 analysis_ip.csv
 ```
 
-### Можливі параметри запуску:
+### Available Run Parameters:
 
-ip - Сортування запитів відбувається за IP адресами користувачів.
+ip – Sorts requests by user IP addresses.
 
-uagent - Сортування запитів відбувається за юзер-агентами користувачів.
+uagent – Sorts requests by user agents.
 
-date - Сортування запитів відбувається за датою.
+date – Sorts requests by date.
 
-date+h - Сортування запитів відбувається за датою із урахуванням годин.
+date+h – Sorts requests by date including hours.
 
-date+m - Сортування запитів відбувається за датою із урахуванням годин та хвилин.
+date+m – Sorts requests by date including hours and minutes.
 
-date+s - Сортування запитів відбувається за датою із урахуванням годин, хвилин та секунд.
+date+s – Sorts requests by date including hours, minutes, and seconds.
 
-type - Сортування запитів відбувається за типом запиту.
+type – Sorts requests by request type.
 
-reply - Сортування запитів відбувається за HTTP кодом відповіді.
+reply – Sorts requests by HTTP response status code.
 
-request -  Сортування запитів відбувається шляхом запиту (URL).
+request – Sorts requests by request path (URL).
 
-search -  Виконується підрахування певного значення.
+search – Counts occurrences of a specific value.
 
-Приклад запуску скрипта із параметром search:
+Example of running the script with the search parameter:
 ```
-/bin/bash /analysis_script/script.sh /шлях/до/файлу/nginx.log search "ip-address"
+/bin/bash /analysis_script/script.sh /path/to/nginx.log search "ip-address"
 ```
-all - Параметр буде запускати покроково кожен параметр, крім search.
+all – Sequentially runs all parameters except search.
 
-# Опис скрипта:
-Скрипт реалізовано на Bash із використанням утиліт awk, sed, sort, uniq та grep для роботи із текстовими даними.
+# Script Description
+The script is implemented in Bash, using utilities such as awk, sed, sort, uniq, and grep for text processing.
 
-## Методи реалізації скрипта:
-Наступний компонент виконує перевірку вірності веденої команди для запуску скрипта:
+## Implementation Details
+The following component validates the input command:
 ```
 [ -z "$LOG_FILE" ] || [ -z "$MODE" ] && { echo "Usage: $0 <log> <mode>"; exit 1; }
 [ ! -f "$LOG_FILE" ] && { echo "Error: $LOG_FILE not found"; exit 1; }
-
 ```
-Підрахування загальної кількості запитів виконується наступним компонентом:
+Counting the total number of requests:
 ```
 TOTAL_REQ=$(wc -l < "$LOG_FILE")
 ```
-Параметри реалізовані за допомогою центральної функції:
+The main logic is encapsulated in the central function:
 ```
 run_analysis()
 ```
-У її рамках додано функції, які будуть виконувати фільтрацію даних за власним параметром, підрахування кількості унікальних значень, сортування їх за кількістю та форматування їх у файл із розширення .csv.
+Inside this function, data is filtered based on the selected parameter, unique values are counted, sorted by frequency, and formatted into a .csv file.
 
-Параметри search та all винесено за рамки центральної функції, оскільки методи їх реалізації відрізняються.
+Parameters search and all are handled separately due to their distinct logic.
 
-Параметр search реалізовано за допомогою команди grep із ключом -F для виконання точного пошуку, після чого відбувається підрахування кількості знайдених значень за допомогою wc -l.
+search uses grep -F for exact value matching and counts results with wc -l.
 
-Параметр all реалізовано через запуск центральної функції 
-```
-run_analysis()
-``` 
-Із підставлянням кожного параметру, для покрокового запуску кожного із них.
-Даний параметр додано для реалізації можливості автоматизації запуску скрипта за допомогою cron-завдань.
+The all parameter is implemented by running the central function run_analysis() with each parameter substituted, for step-by-step execution of each of them.
+This parameter has been added to enable script automation using cron jobs.
 
-Детальніше ознайомитись із реалізацією скрипта можна у файлу script.sh.
-Та із виводом кожного із параметрів у файлі із відповідною назвою analysis_параметр.csv
+Full script details can be found in script.sh, and parameter-specific outputs are stored in files named analysis_<parameter>.csv.
 
-# Автоматизація через Cron
-Приклад додавання у cron-завдання для щоденного аналізу:
+## Automation with Cron
+Example of adding a daily analysis task:
 ```
 0 0 * * * /bin/bash /analysis_script/script.sh /analysis_script/nginx.log all
 ```
-## Розгортання скрипта у рамках докер-контейнера:
-Для перенесення даного скрипта у рамки докер-контейнера, та можливості простого його розгортання було створено файли Dockerfile, docker-compose.yml та .env.
 
-У рамки файлу .env було додано змінні git-token, git-user-name, git-user-email та git-repo щоб надати можливість автоматичного пушу виведеного файлу до Git.
-Прикладу .env файлу було наведено у файлу .env.local.
+# Docker Deployment
+To simplify deployment, the project includes Dockerfile, docker-compose.yml, and .env configuration files.
 
-Для запуску проекту у докер контейнері нам необхідно завантажити файли Dockerfile, docker-compose.yml та створити файл .env куди додати згенерований git-token із можливістю пушити зміни до репозиторіїв.
-Також до файлу .env необхідно додати git-repo, де вказати репизоторій куди повинні пушитись змінні, та інші параметри для коректного пушу змінних.
+The variables git-token, git-user-name, git-user-email, and git-repo were added to the .env file to enable automatic pushing of the output file to Git.
+An example of the .env file is provided in the .env.local file.
 
-Після чого можна розгорнути контейнер використовуючи наступні команди:
+To run the project in a Docker container, we need to download the Dockerfile and docker-compose.yml files and create an .env file where we can add the generated git-token with the ability to push changes to repositories.
+
+After that, you can deploy the container using the following commands:
 ```
 docker compose build
 docker compose up -d
 ```
-# Автоматизація через Cron у випадку використання докер-контейнера
-Приклад додавання у crontab для щоденного аналізу:
+
+## Automation via Cron when using a Docker container
+Example of adding to crontab for daily analysis:
 ```
 0 0 * * * docker exec nginx-log-analyzer /app/script.sh /analysis_script/nginx.log all
-```
+``` 
